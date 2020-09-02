@@ -30,10 +30,10 @@ var chosenYAxis = "obesity";
 function yScale(govData, chosenYAxis) {
 
   var yLinearScale = d3.scaleLinear()
-    .domain([d3.min(govData, d => d[chosenYAxis]) * 0.3,
-      d3.max(govData, d => d[chosenYAxis]) * 0.8
+    .domain([d3.min(govData, d => d[chosenYAxis]),
+      d3.max(govData, d => d[chosenYAxis])
     ])
-    .range([0, height]);
+    .range([height, 0]);
 
   return yLinearScale;
 
@@ -63,6 +63,13 @@ function renderCircles(circlesGroup, newYScale, chosenYAxis) {
   return circlesGroup;
 }
 
+function renderText(circleText, newYScale, chosenYAxis) {
+
+  circleText.transition()
+    .duration(1000)
+    .attr("y", d => newYScale(d[chosenYAxis]));
+
+}
 
 d3.csv("static/data.csv").then(function(govData, err) {
   if (err) throw err;
@@ -82,7 +89,7 @@ d3.csv("static/data.csv").then(function(govData, err) {
 
   var xLinearScale = d3.scaleLinear()
     .domain([0, d3.max(govData, d => d.poverty)])
-    .range([height, 0]);
+    .range([0, width]);
 
 
   var bottomAxis = d3.axisBottom(xLinearScale);
@@ -110,6 +117,20 @@ d3.csv("static/data.csv").then(function(govData, err) {
     .attr("r", 10)
     .attr("fill", "blue")
     .attr("opacity", ".5");
+
+
+  var circleText = chartGroup.selectAll()
+    .data(govData)
+    .enter()
+    .append("text")
+    .classed("circleText", true)
+    .attr("y", d => yLinearScale(d[chosenYAxis])+ 6)
+    .attr("x", d => xLinearScale(d.poverty)- 6)
+    .style("font-size", "10px")
+    .style("font-color", "black")
+    .text(d => d.abbr);
+
+    console.log("mybigbutt")
 
 
 
@@ -162,8 +183,9 @@ d3.csv("static/data.csv").then(function(govData, err) {
 
         circlesGroup = renderCircles(circlesGroup, yLinearScale, chosenYAxis);
 
+        circleText = renderText(circleText, yLinearScale, chosenYAxis);
 
-        if (chosenYAxis === "") {
+        if (chosenYAxis === "obesity") {
           obesityLabel
             .classed("active", true)
             .classed("inactive", false);
